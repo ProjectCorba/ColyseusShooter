@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class PlayerCharacter : MonoBehaviour
 {
     [SerializeField] private float _speed;
     private float _inputH;
@@ -20,5 +20,10 @@ public class Player : MonoBehaviour
     {
         Vector3 direction = new Vector3(_inputH, 0, _inputV).normalized;
         transform.position += direction * Time.deltaTime * _speed;
+    }
+
+    public void GetMoveInfo(out Vector3 position)
+    {
+        position = transform.position;
     }
 }
