@@ -1,10 +1,12 @@
 using Colyseus.Schema;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class EnemyController : MonoBehaviour
 {
     [SerializeField] private EnemyCharacter _character;
+    [SerializeField] private EnemyGun _gun;
     private List<float> _receiveTimeInterval = new List<float> { 0, 0, 0, 0, 0 };
     private float AverageInterval
     {
@@ -18,6 +20,27 @@ public class EnemyController : MonoBehaviour
         }
     }
     private float _lastReceiveTime = 0f;
+    private Player _player;
+
+    public void Init(Player player)
+    {
+        this._player = player;
+        _character.SetSpeed(player.speed);
+        _player.OnChange += OnChange;
+    }
+
+    public void Shoot(in ShootInfo info)
+    {
+        Vector3 position = new Vector3(info.pX, info.pY, info.pZ);
+        Vector3 velocity = new Vector3(info.dX, info.dY, info.dZ);
+        _gun.Shoot(position, velocity);
+    }
+
+    public void Destroy()
+    {
+        _player.OnChange -= OnChange;
+        Destroy(gameObject);
+    }
 
     private void SaveReceiveTime()
     {
@@ -32,7 +55,7 @@ public class EnemyController : MonoBehaviour
         SaveReceiveTime();
 
         Vector3 position = _character.targetPosition;
-        Vector3 velocity = Vector3.zero;
+        Vector3 velocity = _character.Velocity;
 
         foreach (var dataChange in changes) {
             switch (dataChange.Field)
@@ -54,6 +77,12 @@ public class EnemyController : MonoBehaviour
                     break;
                 case "vZ":
                     velocity.z = (float)dataChange.Value;
+                    break;
+                case "rX":
+                    _character.SetRotateX((float)dataChange.Value);
+                    break;
+                case "rY":
+                    _character.SetRotateY((float)dataChange.Value);
                     break;
                 default:
                     Debug.LogWarning(dataChange.Field+": не обрабатываются изменения.");
