@@ -7,6 +7,7 @@ public class EnemyController : MonoBehaviour
 {
     [SerializeField] private EnemyCharacter _character;
     [SerializeField] private EnemyGun _gun;
+    private Player _player;
     private List<float> _receiveTimeInterval = new List<float> { 0, 0, 0, 0, 0 };
     private float AverageInterval
     {
@@ -20,12 +21,14 @@ public class EnemyController : MonoBehaviour
         }
     }
     private float _lastReceiveTime = 0f;
-    private Player _player;
+    
 
-    public void Init(Player player)
+    public void Init(string key, Player player)
     {
         this._player = player;
         _character.SetSpeed(player.speed);
+        _character.SetMaxHP(player.maxHP);
+        _character.Init(key);
         _player.OnChange += OnChange;
     }
 
@@ -60,6 +63,15 @@ public class EnemyController : MonoBehaviour
         foreach (var dataChange in changes) {
             switch (dataChange.Field)
             {
+                case "loss":
+                    MultiplayerManager.Instance._lossCounter.SetEnemyLoss((byte)dataChange.Value);
+                    break;
+                case "currentHP":
+                    if ((sbyte)dataChange.Value > (sbyte)dataChange.PreviousValue)
+                    {
+                        _character.RestorHP((sbyte)dataChange.Value);
+                    }
+                    break;
                 case "pX":
                     position.x = (float)dataChange.Value;
                     break;
